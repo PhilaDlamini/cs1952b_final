@@ -1,0 +1,1 @@
+console.log(`[Brain De-rotter] Background running`),chrome.runtime.onMessage.addListener((e,t)=>{console.log(`[Brain De-rotter] Message received:`,e),e.type===`CLOSE_TAB`&&t.tab&&t.tab.id&&chrome.tabs.remove(t.tab.id)});
