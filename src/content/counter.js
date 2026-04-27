@@ -2,6 +2,7 @@ const STORAGE_KEY = "brainDeRotterState";
 const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
 const COOLDOWN_MS = 2 * 60 * 60 * 1000;
 export const DISABLE_COOLDOWN_FOR_TESTING = true;
+export const UNLOCK_REWARD_FOR_TESTING = false;
 
 const DEFAULT_STATE = {
   sessionCount: 0,
@@ -23,6 +24,17 @@ function cloneState(state) {
     points: state.points,
     discountCode: state.discountCode
   };
+}
+
+function getEffectiveState(state) {
+  const effectiveState = cloneState(state);
+
+  if (UNLOCK_REWARD_FOR_TESTING) {
+    effectiveState.points = Math.max(effectiveState.points, 1000);
+    effectiveState.discountCode = effectiveState.discountCode || generateDiscountCode();
+  }
+
+  return effectiveState;
 }
 
 function getStorageArea() {
@@ -83,15 +95,16 @@ export function createCounter() {
   }
 
   function buildMeta(rewardDelta = 0) {
+    const effectiveState = getEffectiveState(state);
     const now = Date.now();
-    const nextRewardAt = state.lastShortOpenedAt
-      ? state.lastShortOpenedAt + FIVE_HOURS_MS
+    const nextRewardAt = effectiveState.lastShortOpenedAt
+      ? effectiveState.lastShortOpenedAt + FIVE_HOURS_MS
       : now + FIVE_HOURS_MS;
 
     return {
-      state: cloneState(state),
+      state: effectiveState,
       rewardDelta,
-      cooldownRemainingMs: Math.max(0, state.cooldownUntil - now),
+      cooldownRemainingMs: Math.max(0, effectiveState.cooldownUntil - now),
       nextRewardAt
     };
   }
