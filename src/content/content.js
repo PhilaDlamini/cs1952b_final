@@ -7,7 +7,17 @@ console.log("[Brain De-rotter] Loaded");
 const counter = createCounter();
 const gatekeeper = createGatekeeper(counter);
 
-startObserver((videoId) => {
-  counter.registerView(videoId);
-  gatekeeper.evaluate(counter.getState());
-});
+(async () => {
+  await counter.ready;
+  await gatekeeper.initialize();
+
+  startObserver(async (videoId) => {
+    const meta = await counter.registerView(videoId);
+
+    if (!meta.changed) {
+      return;
+    }
+
+    await gatekeeper.evaluate(meta);
+  });
+})();
